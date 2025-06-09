@@ -1,0 +1,156 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Time Services</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f1f1f1;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      margin-top: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 { text-align: center; }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+    }
+    .services, .history, .withdraw-section {
+      display: none;
+    }
+    .service-box {
+      background: #eee;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      text-align: center;
+    }
+    .side {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="side">
+    <strong>Withdraw</strong><br>
+    <small>Minimum Withdrawal ₹9,999</small>
+  </div>
+  <div class="container" id="register-login">
+    <h2>Register / Login</h2>
+    <input type="text" id="phone" placeholder="Phone Number" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <input type="text" id="name" placeholder="Full Name (Register only)">
+    <button onclick="register()">Register</button>
+    <button onclick="login()">Login</button>
+  </div>  <div class="container services" id="services">
+    <h2>Service Packages</h2>
+    <div class="service-box">
+      <p>₹499 - 2x</p>
+      <button onclick="purchase(499, '2x')">Purchase</button>
+    </div>
+    <div class="service-box">
+      <p>₹999 - 2.5x</p>
+      <button onclick="purchase(999, '2.5x')">Purchase</button>
+    </div>
+    <div class="service-box">
+      <p>₹1499 - 3x</p>
+      <button onclick="purchase(1499, '3x')">Purchase</button>
+    </div>
+    <div class="service-box">
+      <p>₹2999 - 3.5x</p>
+      <button onclick="purchase(2999, '3.5x')">Purchase</button>
+    </div>
+    <button onclick="showHistory()">View Purchase History</button>
+  </div>  <div class="container" id="payment" style="display:none">
+    <h2>Make Payment</h2>
+    <p>Send amount to this UPI ID:</p>
+    <strong>ts7170600@okicici</strong>
+    <input type="text" id="utr" placeholder="Enter UTR Number">
+    <button onclick="confirmPurchase()">Confirm Purchase</button>
+  </div>  <div class="container history" id="history">
+    <h2>Purchase History</h2>
+    <ul id="historyList"></ul>
+    <button onclick="backToServices()">Back</button>
+  </div>  <script>
+    let currentUser = null;
+    let currentPurchase = null;
+
+    function register() {
+      const phone = document.getElementById('phone').value;
+      const password = document.getElementById('password').value;
+      const name = document.getElementById('name').value;
+      if (!phone || !password || !name) return alert("Please fill all fields.");
+      const users = JSON.parse(localStorage.getItem("users") || "{}");
+      if (users[phone]) return alert("User already exists.");
+      users[phone] = { password, name, history: [] };
+      localStorage.setItem("users", JSON.stringify(users));
+      alert("Registered successfully.");
+    }
+
+    function login() {
+      const phone = document.getElementById('phone').value;
+      const password = document.getElementById('password').value;
+      const users = JSON.parse(localStorage.getItem("users") || "{}");
+      if (!users[phone] || users[phone].password !== password) return alert("Invalid login.");
+      currentUser = phone;
+      document.getElementById("register-login").style.display = "none";
+      document.getElementById("services").style.display = "block";
+    }
+
+    function purchase(amount, multiplier) {
+      currentPurchase = { amount, multiplier };
+      document.getElementById("services").style.display = "none";
+      document.getElementById("payment").style.display = "block";
+    }
+
+    function confirmPurchase() {
+      const utr = document.getElementById("utr").value;
+      if (!utr) return alert("Please enter UTR number.");
+      const users = JSON.parse(localStorage.getItem("users") || "{}");
+      const user = users[currentUser];
+      user.history.push({ ...currentPurchase, utr, date: new Date().toLocaleString() });
+      users[currentUser] = user;
+      localStorage.setItem("users", JSON.stringify(users));
+      document.getElementById("payment").style.display = "none";
+      document.getElementById("services").style.display = "block";
+      alert("Purchase Successful.");
+    }
+
+    function showHistory() {
+      const list = document.getElementById("historyList");
+      list.innerHTML = "";
+      const user = JSON.parse(localStorage.getItem("users"))[currentUser];
+      user.history.forEach((item, index) => {
+        const li = document.createElement("li");
+        li.textContent = `₹${item.amount} - ${item.multiplier} - UTR: ${item.utr} - ${item.date}`;
+        list.appendChild(li);
+      });
+      document.getElementById("services").style.display = "none";
+      document.getElementById("history").style.display = "block";
+    }
+
+    function backToServices() {
+      document.getElementById("history").style.display = "none";
+      document.getElementById("services").style.display = "block";
+    }
+  </script></body>
+</html>
